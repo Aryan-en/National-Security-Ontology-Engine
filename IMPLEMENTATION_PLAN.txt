@@ -1,0 +1,729 @@
+================================================================================
+  NATIONAL SECURITY ONTOLOGY ENGINE (NSOE)
+  Implementation Plan & Progress Checklist
+  Version: 0.1 | Status: Pre-Development | Date: April 2026
+================================================================================
+
+OVERVIEW
+--------
+This document is the engineering implementation plan and progress tracker for
+the NSOE system. It is organized into 4 phases over 24 months. Each task is
+marked with a status indicator:
+
+  [ ] = Not started
+  [~] = In progress
+  [x] = Completed
+  [!] = Blocked / needs decision
+
+Each phase builds on the previous. Do NOT proceed to coding tasks before
+completing the design and review gates at the end of each phase section.
+
+================================================================================
+PHASE 1 — FOUNDATION  (Months 1–6)
+================================================================================
+Goal: Working skeleton of the core pipeline. One edge node talking to one
+      central intelligence instance. Analysts can run manual queries.
+
+--------------------------------------------------------------------------------
+1.1  PROJECT SETUP AND GOVERNANCE
+--------------------------------------------------------------------------------
+  [ ] 1.1.1  Create GitHub organization and repo structure
+              Repos needed:
+              - nsoe-ontology          (OWL/Turtle schema files)
+              - nsoe-edge              (edge node software)
+              - nsoe-pipelines         (Kafka/Flink jobs)
+              - nsoe-intelligence-core (graph + correlation engine)
+              - nsoe-api               (REST/gRPC service layer)
+              - nsoe-dashboard         (analyst frontend)
+              - nsoe-infra             (Terraform + Ansible IaC)
+              - nsoe-ml                (model training + serving)
+
+  [ ] 1.1.2  Define branching strategy, PR review policy, commit signing rules
+  [ ] 1.1.3  Set up CI/CD framework (GitHub Actions) — lint, test, build gates
+  [ ] 1.1.4  Configure secret management (HashiCorp Vault dev instance)
+  [ ] 1.1.5  Set up project management board (GitHub Projects or Jira)
+  [ ] 1.1.6  Draft data governance policy document (retention, classification)
+  [ ] 1.1.7  Identify legal counsel for DPDP Act 2023 compliance review
+  [ ] 1.1.8  Establish ontology governance board (minimum 3 domain experts)
+
+--------------------------------------------------------------------------------
+1.2  ONTOLOGY DESIGN AND FORMALIZATION
+--------------------------------------------------------------------------------
+  [ ] 1.2.1  Review and finalize top-level class hierarchy (OWL 2)
+              Classes: Agent, Event, Location, Artifact, ThreatCampaign
+              Sub-classes: as defined in README Section 3.1
+
+  [ ] 1.2.2  Define all object properties (relationships) with domain/range
+              Key properties: sightedAt, participatedIn, communicatedWith,
+              operatesInfrastructure, associatedCampaign, corroboratedBy
+
+  [ ] 1.2.3  Define all datatype properties (attributes on nodes)
+              Key properties: risk_score, confidence_score, ingested_at,
+              classification_level, source_id, valid_time_start, valid_time_end
+
+  [ ] 1.2.4  Write SHACL constraint shapes for each class
+              Validate: required properties, datatype constraints, cardinality
+
+  [ ] 1.2.5  Write SWRL rules for Tier 1 inference (co-location detection,
+              communication network rules, campaign membership inference)
+
+  [ ] 1.2.6  Serialize ontology in Turtle (.ttl) and JSON-LD formats
+  [ ] 1.2.7  Validate ontology with Protégé and ROBOT tool (no logical errors)
+  [ ] 1.2.8  Set up Git-based ontology versioning with semantic version tags
+  [ ] 1.2.9  Write ontology documentation (class descriptions, property docs)
+  [ ] 1.2.10 Peer review by domain expert — counter-terrorism, cybersecurity
+
+  GATE: Ontology review sign-off before any pipeline work begins
+
+--------------------------------------------------------------------------------
+1.3  DATA CONTRACTS AND SCHEMAS
+--------------------------------------------------------------------------------
+  [ ] 1.3.1  Define Kafka event schemas for each topic:
+              - edge.cctv.events          (detection events from cameras)
+              - cyber.raw.events          (cyber telemetry)
+              - socmint.processed.events  (SOCMINT NLP output)
+              - enriched.cctv.events      (after Flink enrichment)
+              - ontology.write.commands   (graph write requests)
+              - alerts.active             (live alert stream)
+
+  [ ] 1.3.2  Register all schemas in Confluent Schema Registry (Avro/Protobuf)
+  [ ] 1.3.3  Define and document Neo4j property graph schema (node labels,
+              relationship types, property names, index definitions)
+  [ ] 1.3.4  Define REST API contracts (OpenAPI 3.1 spec) for:
+              - Alert ingestion endpoint
+              - Graph query endpoint
+              - Entity search endpoint
+              - Analyst feedback endpoint
+  [ ] 1.3.5  Write data dictionary mapping source fields to ontology properties
+  [ ] 1.3.6  Define STIX 2.1 bundle format for cyber threat intelligence import
+
+--------------------------------------------------------------------------------
+1.4  INFRASTRUCTURE SETUP (Development Environment)
+--------------------------------------------------------------------------------
+  [ ] 1.4.1  Provision development Kubernetes cluster (single-node K3s or
+              KIND cluster for local dev)
+  [ ] 1.4.2  Deploy Kafka (single broker, 3 topics) — Confluent Platform or
+              Apache Kafka 3.6+
+  [ ] 1.4.3  Deploy Apache Flink 1.18 (session cluster mode for dev)
+  [ ] 1.4.4  Deploy Neo4j Community/Enterprise (single node, dev license)
+  [ ] 1.4.5  Deploy MinIO (local S3-compatible object store)
+  [ ] 1.4.6  Deploy Redis (single node, no cluster for dev)
+  [ ] 1.4.7  Deploy Elasticsearch 8.x (single node)
+  [ ] 1.4.8  Deploy Prometheus + Grafana for infrastructure monitoring
+  [ ] 1.4.9  Set up WireGuard VPN for remote developer access
+  [ ] 1.4.10 Write Terraform modules for above (reproducible environment)
+  [ ] 1.4.11 Write Ansible playbooks for edge node base OS configuration
+
+--------------------------------------------------------------------------------
+1.5  EDGE NODE PROTOTYPE
+--------------------------------------------------------------------------------
+  [ ] 1.5.1  Select and procure prototype hardware
+              - 2x NVIDIA Jetson Orin NX 16GB developer kits
+              - 2x IP cameras (ONVIF-compliant, for testing)
+              - 1x Raspberry Pi CM4 (low-power tier test)
+
+  [ ] 1.5.2  Write base OS image for Jetson (Ubuntu 22.04 + JetPack 6)
+              Include: Docker, K3s agent, WireGuard, NTP config
+
+  [ ] 1.5.3  Implement camera adapter service
+              - RTSP stream ingestion via GStreamer
+              - ONVIF device discovery
+              - Proprietary camera SDK support (Hikvision SDK wrapper)
+              - Reconnection logic with exponential backoff
+
+  [ ] 1.5.4  Implement frame sampling pipeline
+              - Configurable FPS (1–10) via remote config
+              - Motion-triggered sampling (save CPU when scene is static)
+              - Frame buffer management
+
+  [ ] 1.5.5  Integrate YOLOv8n model (TensorRT INT8 quantized)
+              - Person detection
+              - Object detection (bags, vehicles, weapons)
+              - Inference latency target: <30ms at 1080p
+
+  [ ] 1.5.6  Integrate DeepSORT/ByteTrack tracker
+              - Multi-person tracking with persistent track IDs
+              - Track lifecycle management (birth, death, re-ID)
+
+  [ ] 1.5.7  Implement local RocksDB event buffer
+              - Write events to RocksDB before Kafka publish
+              - Replay buffer on reconnection
+              - Buffer size management (auto-evict oldest on >80% capacity)
+
+  [ ] 1.5.8  Implement Kafka producer (MQTT bridge for low-bandwidth mode)
+              - Protobuf serialization of detection events
+              - TLS client certificate authentication
+              - Idempotent producer config (no duplicate events)
+
+  [ ] 1.5.9  Write health check service (K3s liveness/readiness probes)
+  [ ] 1.5.10 Write remote configuration service (pull config from central,
+              apply without restart where possible)
+  [ ] 1.5.11 Prototype test: 1 camera → 1 Jetson → Kafka topic in dev env
+  [ ] 1.5.12 Measure and document: latency, CPU/GPU/memory usage, bandwidth
+
+--------------------------------------------------------------------------------
+1.6  STREAM PROCESSING — FLINK PIPELINES (PHASE 1 SCOPE)
+--------------------------------------------------------------------------------
+  [ ] 1.6.1  Implement Flink job: cctv-enrichment-job
+              - Consume from edge.cctv.events
+              - Deduplication (30s sliding window by track_id + camera_id)
+              - Timestamp normalization (server receipt time override for
+                devices with clock anomaly flag)
+              - Geolocation enrichment (join camera metadata lookup table)
+              - Emit to enriched.cctv.events
+
+  [ ] 1.6.2  Implement Flink job: basic-cep-alert-job
+              - Consume from enriched.cctv.events
+              - Pattern: person_track appears for >300s in same zone (loitering)
+              - Pattern: abandoned_object (object detected, no person nearby
+                for >60s)
+              - Emit matched patterns to alerts.active topic
+
+  [ ] 1.6.3  Write Flink job unit tests (FlinkMiniCluster)
+  [ ] 1.6.4  Write Flink job integration tests with Kafka TestContainers
+
+--------------------------------------------------------------------------------
+1.7  GRAPH DATABASE SETUP AND ONTOLOGY INGESTION SERVICE
+--------------------------------------------------------------------------------
+  [ ] 1.7.1  Design and create Neo4j indexes and constraints
+              - Unique constraint on entity IDs
+              - Index on: entity_type, risk_score, ingested_at, camera_id
+              - Full-text index on: name, alias fields
+
+  [ ] 1.7.2  Implement OntologyIngestionService (Python/FastAPI)
+              - Consume from enriched.cctv.events
+              - Map detection event → nsoe:Sighting node
+              - Map camera → nsoe:Location node (upsert, not duplicate)
+              - Write to Neo4j with provenance metadata (MERGE semantics)
+
+  [ ] 1.7.3  Implement SHACL validation step before graph write
+              (reject invalid entities before they enter the graph)
+
+  [ ] 1.7.4  Implement basic entity resolution (exact-match on camera_id,
+              track_id, timestamp window — Phase 1 scope only)
+
+  [ ] 1.7.5  Write graph write idempotency tests
+              (same event ingested twice → same graph state, no duplicates)
+
+--------------------------------------------------------------------------------
+1.8  ANALYST DASHBOARD — PHASE 1 (READ-ONLY PROTOTYPE)
+--------------------------------------------------------------------------------
+  [ ] 1.8.1  Set up React + TypeScript project
+  [ ] 1.8.2  Implement authentication (Keycloak OIDC integration)
+  [ ] 1.8.3  Implement live alert feed (WebSocket consumer from alerts.active)
+  [ ] 1.8.4  Implement basic map view (Leaflet.js + camera location markers)
+              Show: camera locations, active alerts as pins
+  [ ] 1.8.5  Implement entity search (query Elasticsearch)
+  [ ] 1.8.6  Implement basic graph explorer (Neo4j Bloom embed or
+              Sigma.js with manual Cypher queries)
+  [ ] 1.8.7  Implement RBAC-aware UI (hide features user lacks permission for)
+
+--------------------------------------------------------------------------------
+PHASE 1 COMPLETION GATE
+--------------------------------------------------------------------------------
+  [ ] End-to-end smoke test: 1 camera → edge node → Kafka → Flink →
+      Neo4j → dashboard alert visible in < 10 seconds
+  [ ] Security review of Phase 1 codebase (OWASP Top 10 check)
+  [ ] Ontology formal review and sign-off
+  [ ] Data contract review and sign-off
+  [ ] Load test: 10 simulated cameras, confirm no Kafka consumer lag
+  [ ] Document all open issues and known limitations before Phase 2
+
+
+================================================================================
+PHASE 2 — INTELLIGENCE CORE  (Months 7–12)
+================================================================================
+Goal: Full multi-source fusion, ontology-driven threat detection, SOCMINT
+      integration, GNN risk scoring, complete security architecture.
+
+--------------------------------------------------------------------------------
+2.1  CYBER TELEMETRY INTEGRATION
+--------------------------------------------------------------------------------
+  [ ] 2.1.1  Implement STIX 2.1 ingestor (consume threat feed bundles,
+              normalize to ontology, write to graph)
+  [ ] 2.1.2  Implement Flink job: cyber-normalization-job
+              (syslog / CEF / LEEF → STIX 2.1 intermediate format)
+  [ ] 2.1.3  Implement MITRE ATT&CK TTP mapping service
+              (map observed techniques to ATT&CK IDs)
+  [ ] 2.1.4  Implement network anomaly detection (Isolation Forest on
+              Flink, consuming NetFlow/IPFIX records)
+  [ ] 2.1.5  Integrate with CERT-In TAXII feed (test endpoint first)
+  [ ] 2.1.6  Graph write: CyberEvent, Indicator, ThreatActor nodes
+
+--------------------------------------------------------------------------------
+2.2  SOCMINT INTEGRATION
+--------------------------------------------------------------------------------
+  [ ] 2.2.1  Implement social media ingestion adapters:
+              - Twitter/X filtered stream API (keywords + user watch list)
+              - Telegram public channel scraper (lawful authorization required)
+              - News RSS aggregator (50+ Indian news sources)
+  [ ] 2.2.2  Implement NLP pipeline (Python, HuggingFace):
+              - Language detection
+              - Multilingual NER (XLM-RoBERTa fine-tuned on Indian content)
+              - Threat intent classification (IndicBERT fine-tuned)
+              - Entity extraction: person names, locations, organizations
+              - Cross-language entity normalization (mBART-50)
+  [ ] 2.2.3  Implement source credibility scoring model
+  [ ] 2.2.4  Implement bot detection classifier (graph-based + behavioral)
+  [ ] 2.2.5  Implement Kafka consumer → NLP pipeline → socmint.processed.events
+  [ ] 2.2.6  Graph write: SocialMediaEvent, ThreatPost, author → Person mapping
+  [ ] 2.2.7  Implement 48h hold buffer for SOCMINT-only flags
+              (do not escalate without corroboration from other domain)
+
+--------------------------------------------------------------------------------
+2.3  CROSS-DOMAIN CORRELATION ENGINE
+--------------------------------------------------------------------------------
+  [ ] 2.3.1  Design correlation rule taxonomy (documented in ontology repo)
+              Rule categories: co-location, temporal proximity, shared artifact,
+              network overlap, communication overlap
+
+  [ ] 2.3.2  Implement CorrelationEngine service (Python)
+              - Subscribe to enriched events from all three domains
+              - Evaluate SWRL rules (Drools or custom rule engine)
+              - Emit CorrelationEvent nodes to graph
+
+  [ ] 2.3.3  Implement Bayesian fusion module
+              - Combine independent evidence sources with probabilistic model
+              - Output: fused_confidence_score with contributing signals list
+
+  [ ] 2.3.4  Implement Flink CEP job: cross-domain-alert-job
+              Pattern 1: watchlist_person + SOCMINT_threat_signal
+                         in same time window → corroborated_alert
+              Pattern 2: cyber_intrusion + physical_access_event
+                         at same facility in same time window → critical_alert
+              Pattern 3: 3+ watchlist_persons co-located → cell_alert
+
+  [ ] 2.3.5  Implement alert tiering logic
+              Score 0.4–0.6 → analyst_review_queue
+              Score 0.6–0.8 → soft_alert (notify analyst on duty)
+              Score 0.8–1.0 → escalation (notify senior analyst + supervisor)
+
+  [ ] 2.3.6  Write correlation engine unit tests (50+ test cases including
+              known true positive and known false positive scenarios)
+
+--------------------------------------------------------------------------------
+2.4  ENTITY RESOLUTION (ADVANCED)
+--------------------------------------------------------------------------------
+  [ ] 2.4.1  Implement probabilistic record linkage (Fellegi-Sunter model)
+              Link candidate pairs: same person across different sources
+              Features: name similarity, location overlap, temporal proximity,
+              biometric match score
+
+  [ ] 2.4.2  Implement name normalization for Indian names
+              (handle transliterations: Mohammed/Muhammad/Mohammad)
+
+  [ ] 2.4.3  Implement alias clustering (resolve group aliases:
+              "IM" = "Indian Mujahideen" = "Indian Mujahideen")
+
+  [ ] 2.4.4  Implement face re-identification model (cross-camera ReID)
+              Model: OSNet or TransReID (lightweight for edge)
+              Purpose: track person across cameras without PTZ control
+
+  [ ] 2.4.5  Write entity resolution test suite with precision/recall metrics
+              Target: >0.92 precision, >0.85 recall on test dataset
+
+--------------------------------------------------------------------------------
+2.5  GNN RISK SCORING
+--------------------------------------------------------------------------------
+  [ ] 2.5.1  Set up PyTorch Geometric training environment (GPU node)
+  [ ] 2.5.2  Build graph feature extraction pipeline
+              Node features: entity_type, source_credibility, connection_count,
+              historical_incident_count, geographic_centrality
+              Edge features: relationship_type, confidence, recency
+
+  [ ] 2.5.3  Implement GraphSAGE node classifier for risk scoring
+              Output: risk_score [0–1] per entity node
+              Training data: labeled dataset of known threat actors vs civilians
+
+  [ ] 2.5.4  Implement GAT link predictor for hidden connection discovery
+              Output: probability of relationship existing between entity pairs
+
+  [ ] 2.5.5  Set up MLflow experiment tracking and model registry
+  [ ] 2.5.6  Implement batch scoring job (Airflow DAG):
+              - Run nightly GraphSAGE inference on full graph
+              - Update risk_score property on all entity nodes
+              - Log score distribution to Grafana dashboard
+
+  [ ] 2.5.7  Implement real-time score update trigger:
+              When new high-confidence event is written to graph,
+              re-score affected subgraph (1-hop neighborhood) inline
+
+  [ ] 2.5.8  Validate: compare GNN scores with analyst-assigned scores on
+              held-out test set. Target: AUC > 0.90
+
+--------------------------------------------------------------------------------
+2.6  FULL SECURITY ARCHITECTURE
+--------------------------------------------------------------------------------
+  [ ] 2.6.1  Deploy SPIFFE/SPIRE for workload identity (all services get SVIDs)
+  [ ] 2.6.2  Configure Istio for mTLS enforcement on all service-to-service
+              communication
+  [ ] 2.6.3  Implement OPA (Open Policy Agent) policies for:
+              - Data classification access control (RESTRICTED vs SECRET)
+              - Geographic zone restrictions for analysts
+              - API rate limiting and abuse prevention
+  [ ] 2.6.4  Enable LUKS full-disk encryption on all edge nodes
+  [ ] 2.6.5  Deploy HashiCorp Vault production cluster (3-node HA)
+              - PKI secrets engine for service certificates
+              - KV secrets engine for API keys
+              - Transit secrets engine for field-level encryption
+  [ ] 2.6.6  Implement immutable audit log (WORM) for all analyst actions
+  [ ] 2.6.7  Enable Neo4j data-at-rest encryption
+  [ ] 2.6.8  Implement FIDO2/WebAuthn for analyst dashboard authentication
+  [ ] 2.6.9  Network segmentation: implement 4-zone firewall rules
+              (Internet/DMZ/Processing/Intelligence/Analyst)
+  [ ] 2.6.10 Run OWASP ZAP automated scan against all APIs
+  [ ] 2.6.11 Penetration test (internal red team) Phase 2 surface
+
+--------------------------------------------------------------------------------
+2.7  ALERT MANAGEMENT AND CASE MANAGEMENT
+--------------------------------------------------------------------------------
+  [ ] 2.7.1  Implement AlertManagementService
+              - Alert CRUD (create, acknowledge, escalate, close, suppress)
+              - SLA tracking (alert → acknowledge time targets by severity)
+              - Alert deduplication (same underlying event, multiple triggers)
+
+  [ ] 2.7.2  Implement CaseManagementService (or integrate OpenCTI)
+              - Create case from alert
+              - Link evidence (graph entities, raw video clips, documents)
+              - Case timeline view
+              - Multi-analyst collaboration on case
+
+  [ ] 2.7.3  Implement analyst feedback loop
+              - Analyst marks alert as TP or FP
+              - Feedback stored and used for model retraining signal
+              - FP feedback triggers suppression rule creation
+
+  [ ] 2.7.4  Implement notification service
+              - WebSocket push to dashboard
+              - SMS/email for high-severity alerts (>0.8 score)
+              - PagerDuty/Opsgenie integration for on-call escalation
+
+--------------------------------------------------------------------------------
+2.8  DASHBOARD — PHASE 2 ENHANCEMENTS
+--------------------------------------------------------------------------------
+  [ ] 2.8.1  Implement threat map with real-time alert overlays (Kepler.gl)
+  [ ] 2.8.2  Implement entity detail view (graph neighborhood visualization)
+  [ ] 2.8.3  Implement cross-domain timeline view for an entity/case
+  [ ] 2.8.4  Implement risk score trend charts (Recharts/D3.js)
+  [ ] 2.8.5  Implement SOCMINT feed panel with source credibility indicators
+  [ ] 2.8.6  Implement analyst workqueue (assigned alerts, SLA countdown)
+  [ ] 2.8.7  Implement case management UI integration
+  [ ] 2.8.8  Implement audit log viewer (read-only, compliance team access)
+
+--------------------------------------------------------------------------------
+PHASE 2 COMPLETION GATE
+--------------------------------------------------------------------------------
+  [ ] End-to-end test: synthetic cross-domain scenario (CCTV + SOCMINT + cyber
+      event for same synthetic entity) → correct correlated alert in < 30s
+  [ ] GNN risk scoring AUC > 0.90 on test dataset
+  [ ] Entity resolution precision > 0.92 on test dataset
+  [ ] Security architecture review (external consultant sign-off)
+  [ ] Bias audit: face recognition false positive rate parity across
+      demographic groups (< 5% disparity)
+  [ ] Legal review: DPDP Act 2023 compliance assessment
+  [ ] Load test: 100 simulated edge nodes, 10K events/second, < 10s alert latency
+
+
+================================================================================
+PHASE 3 — SCALE AND HARDEN  (Months 13–18)
+================================================================================
+Goal: Prove the system can handle 1,000 real edge nodes. Full fault tolerance,
+      DR, drift monitoring, federated retraining.
+
+--------------------------------------------------------------------------------
+3.1  SCALE INFRASTRUCTURE TO 1,000 EDGE NODES
+--------------------------------------------------------------------------------
+  [ ] 3.1.1  Deploy 3-tier aggregation topology:
+              - Tier 1: ~1,000 edge nodes (K3s agents)
+              - Tier 2: 20 regional aggregation nodes (K3s clusters)
+              - Tier 3: 2 zone intelligence hubs (full K8s clusters)
+  [ ] 3.1.2  Deploy Kafka regional brokers at each Tier 2 node
+              (MirrorMaker 2 replication to central)
+  [ ] 3.1.3  Deploy Neo4j Fabric sharding configuration
+              (shard by entity_type and geographic region)
+  [ ] 3.1.4  Deploy 5 Neo4j read replicas at central cluster
+  [ ] 3.1.5  Implement Redis cluster for hot entity cache
+              (top 10,000 high-risk entities, 5-minute TTL)
+  [ ] 3.1.6  Deploy zero-touch provisioning for edge nodes
+              (Ignition + K3s bootstrap; new node online in < 30 min)
+  [ ] 3.1.7  Deploy edge device management platform
+              (OTA updates, remote config, health dashboard)
+  [ ] 3.1.8  Load test: 1,000 nodes, 100K events/second
+              Pass criteria: < 10s alert latency, < 1% event drop rate
+
+--------------------------------------------------------------------------------
+3.2  FAULT TOLERANCE AND RESILIENCE
+--------------------------------------------------------------------------------
+  [ ] 3.2.1  Implement circuit breakers on all ML inference calls
+              (Resilience4j or Python equivalent)
+  [ ] 3.2.2  Implement fallback scoring (pre-computed static scores when
+              live GNN inference is unavailable)
+  [ ] 3.2.3  Test and validate Neo4j Causal Cluster failover
+              (kill leader, verify <15s re-election, no data loss)
+  [ ] 3.2.4  Test and validate Kafka broker failure scenarios
+              (kill 1 of 3 brokers, verify no message loss, consumer resume)
+  [ ] 3.2.5  Test edge node offline scenario
+              (disconnect for 48h, reconnect, verify all buffered events
+               replayed with correct original timestamps)
+  [ ] 3.2.6  Implement automated failover to Neptune DR replica
+              (trigger: Neo4j leader unavailable > 60s)
+  [ ] 3.2.7  Run full DR test: simulate primary DC failure, verify
+              secondary DC serving queries within 15-minute RTO
+  [ ] 3.2.8  Document all runbooks for failure scenarios
+
+--------------------------------------------------------------------------------
+3.3  DRIFT MONITORING AND FEDERATED RETRAINING
+--------------------------------------------------------------------------------
+  [ ] 3.3.1  Deploy Evidently AI monitoring service
+              - Configure feature drift monitors for all edge models
+              - Configure prediction drift monitors (alert distribution shift)
+              - Alert threshold: PSI > 0.2 or KS test p < 0.05
+
+  [ ] 3.3.2  Implement Flower federated learning coordinator
+              - Central server aggregates model updates from regional nodes
+              - No raw data leaves edge; only model gradients/weights shared
+              - Aggregation strategy: FedAvg with client selection by data quality
+
+  [ ] 3.3.3  Implement automated retraining trigger
+              (drift alert → trigger Airflow DAG → federated training round
+               → candidate model evaluation → shadow deployment)
+
+  [ ] 3.3.4  Implement seasonal model variant management
+              (4 seasonal checkpoints per year; auto-select based on
+               calendar + current drift score)
+
+  [ ] 3.3.5  Implement continual learning pipeline
+              (analyst-confirmed TPs from last 30 days → fine-tuning dataset
+               → weekly lightweight fine-tune job)
+
+  [ ] 3.3.6  Validate: after 3 months of deployment, compare model accuracy
+              to baseline. Drift-corrected model should not degrade
+              more than 2% on held-out regional test set.
+
+--------------------------------------------------------------------------------
+3.4  CLOCK SYNCHRONIZATION HARDENING
+--------------------------------------------------------------------------------
+  [ ] 3.4.1  Deploy GPS-disciplined NTP servers at all 20 Tier 3 zone hubs
+  [ ] 3.4.2  Configure PTP (IEEE 1588) on all Tier 2 regional nodes
+  [ ] 3.4.3  Implement Flink watermark tuning per region
+              (based on observed clock drift distribution per region)
+  [ ] 3.4.4  Build clock health dashboard
+              (show per-device clock offset vs GPS reference in Grafana)
+  [ ] 3.4.5  Implement automated NTP config push to cameras via ONVIF
+
+--------------------------------------------------------------------------------
+3.5  ONTOLOGY MAINTENANCE AUTOMATION
+--------------------------------------------------------------------------------
+  [ ] 3.5.1  Implement STIX/TAXII auto-sync with CERT-In and NCIIPC feeds
+              (nightly Airflow DAG; new TTPs mapped to ATT&CK + ontology)
+  [ ] 3.5.2  Implement NLP-based concept extraction from threat reports
+              (surface candidate new entity types / relationships to ontology
+               governance board for review)
+  [ ] 3.5.3  Implement ontology change management pipeline
+              (propose → review → approve → deploy → migrate graph)
+  [ ] 3.5.4  Implement ontology health metrics dashboard
+              (coverage: % entities with all required properties;
+               staleness: % nodes not updated in > 30 days)
+
+--------------------------------------------------------------------------------
+3.6  CAMERA COMPATIBILITY HARDENING
+--------------------------------------------------------------------------------
+  [ ] 3.6.1  Build camera compatibility matrix database
+              (vendor, model, firmware, adapter type, known issues)
+  [ ] 3.6.2  Implement Hikvision SDK wrapper adapter (covers ~30% of India's
+              government-deployed cameras)
+  [ ] 3.6.3  Implement Dahua SDK wrapper adapter
+  [ ] 3.6.4  Implement HDMI capture relay option for fully incompatible cameras
+              (Raspberry Pi + HDMI capture card as frame relay)
+  [ ] 3.6.5  Write camera onboarding wizard for field technicians
+              (auto-detect camera type, try adapters in sequence, report result)
+  [ ] 3.6.6  Validate: camera compatibility test with 20+ real camera models
+              from Indian government procurement lists
+
+--------------------------------------------------------------------------------
+3.7  SECURITY HARDENING
+--------------------------------------------------------------------------------
+  [ ] 3.7.1  External penetration test (engage third-party security firm)
+              Scope: all APIs, edge node, Kafka, graph DB, dashboard
+  [ ] 3.7.2  Fix all critical and high findings from pentest
+  [ ] 3.7.3  Implement threat modeling (STRIDE) for all new Phase 3 components
+  [ ] 3.7.4  Red team exercise: simulate insider threat attempting to access
+              data beyond their authorization
+  [ ] 3.7.5  Enable Security Information and Event Management (SIEM)
+              integration (forward audit logs to external SIEM)
+  [ ] 3.7.6  Implement vulnerability scanning in CI/CD pipeline
+              (Trivy for container images, Semgrep for source code)
+
+--------------------------------------------------------------------------------
+PHASE 3 COMPLETION GATE
+--------------------------------------------------------------------------------
+  [ ] 1,000-node load test passing (see 3.1.8)
+  [ ] DR test passing (15-min RTO)
+  [ ] Drift monitoring active with documented alert thresholds
+  [ ] Federated retraining end-to-end validated
+  [ ] External pentest findings remediated
+  [ ] Ontology governance process operational
+  [ ] Legal and compliance pre-certification assessment complete
+
+
+================================================================================
+PHASE 4 — PRODUCTION ROLLOUT  (Months 19–24)
+================================================================================
+Goal: 10,000 edge nodes in production. Multi-agency integration.
+      Legal certification. Operational handover.
+
+--------------------------------------------------------------------------------
+4.1  SCALE TO 10,000 EDGE NODES
+--------------------------------------------------------------------------------
+  [ ] 4.1.1  Procure and stage hardware (phased procurement plan)
+  [ ] 4.1.2  Execute zero-touch provisioning at scale
+  [ ] 4.1.3  Scale Kafka to 30-broker cluster (3,000 partitions)
+  [ ] 4.1.4  Scale Neo4j Fabric to support 10-shard configuration
+  [ ] 4.1.5  Scale Flink to 100-node cluster for stream processing
+  [ ] 4.1.6  Load test: 10,000 nodes, 1M events/second
+              Pass criteria: < 10s alert latency, < 0.1% event drop rate
+  [ ] 4.1.7  Validate regional Kafka replication lag < 1s under full load
+
+--------------------------------------------------------------------------------
+4.2  MULTI-AGENCY INTEGRATION
+--------------------------------------------------------------------------------
+  [ ] 4.2.1  Define inter-agency data sharing API and data sharing agreements
+  [ ] 4.2.2  Implement federated graph query capability (Neptune SPARQL
+              endpoint for partner agency read access)
+  [ ] 4.2.3  Implement classification-aware data sharing
+              (partner agencies can only query up to their clearance level)
+  [ ] 4.2.4  Integrate with IB, RAW, NTRO, NCIIPC feeds (where authorized)
+  [ ] 4.2.5  Implement secure data exchange with state police systems
+  [ ] 4.2.6  Test cross-agency alert forwarding and case handover workflow
+
+--------------------------------------------------------------------------------
+4.3  LEGAL AND COMPLIANCE CERTIFICATION
+--------------------------------------------------------------------------------
+  [ ] 4.3.1  DPDP Act 2023 formal compliance certification
+  [ ] 4.3.2  IT Act 2000 + CERT-In guidelines compliance review
+  [ ] 4.3.3  MHA surveillance authorization framework compliance
+  [ ] 4.3.4  Parliamentary oversight committee access setup
+              (read-only audit dashboard with appropriate classification controls)
+  [ ] 4.3.5  Data retention automation testing
+              (verify data auto-purges per retention schedule)
+  [ ] 4.3.6  Bias audit for production dataset
+              (full demographic parity analysis on face recognition + NLP)
+  [ ] 4.3.7  Third-party algorithmic audit (independent technical review)
+
+--------------------------------------------------------------------------------
+4.4  OPERATIONAL HANDOVER AND TRAINING
+--------------------------------------------------------------------------------
+  [ ] 4.4.1  Write Analyst Operations Manual
+  [ ] 4.4.2  Write Platform Operations Runbook (DevOps/SRE)
+  [ ] 4.4.3  Write Field Technician Manual (edge node deployment + maintenance)
+  [ ] 4.4.4  Conduct analyst training program (Tier 1: junior, Tier 2: senior)
+  [ ] 4.4.5  Conduct tabletop exercise (simulated threat scenario end-to-end)
+  [ ] 4.4.6  Define SLAs for production system:
+              - Alert latency: < 10s for p95
+              - System availability: > 99.5%
+              - Edge node coverage: > 95% of deployed nodes healthy at any time
+  [ ] 4.4.7  Establish on-call rotation for platform operations team
+  [ ] 4.4.8  Establish incident response process (P1–P4 severity definitions)
+
+--------------------------------------------------------------------------------
+4.5  ONGOING MODEL GOVERNANCE PROGRAM
+--------------------------------------------------------------------------------
+  [ ] 4.5.1  Establish monthly model performance review meeting
+  [ ] 4.5.2  Establish quarterly ontology review cycle
+  [ ] 4.5.3  Establish annual full bias audit cycle
+  [ ] 4.5.4  Establish process for analyst feedback → model improvement cycle
+  [ ] 4.5.5  Establish vulnerability disclosure and patch SLAs
+              (Critical: 24h, High: 7d, Medium: 30d, Low: 90d)
+
+--------------------------------------------------------------------------------
+PHASE 4 COMPLETION GATE — PRODUCTION ACCEPTANCE
+--------------------------------------------------------------------------------
+  [ ] All compliance certifications obtained
+  [ ] 10,000-node load test passing
+  [ ] 30-day production burn-in with no P1 incidents
+  [ ] Analyst team trained and signed off
+  [ ] All runbooks reviewed and accessible
+  [ ] Parliamentary oversight committee access verified
+  [ ] Formal acceptance sign-off from program authority
+
+
+================================================================================
+ONGOING / CROSS-CUTTING TASKS (Throughout all phases)
+================================================================================
+
+  DOCUMENTATION
+  [ ] API documentation (auto-generated from OpenAPI specs, updated each sprint)
+  [ ] Architecture decision records (ADR) for all major design choices
+  [ ] Data dictionary kept current with schema changes
+  [ ] Threat model updated when attack surface changes
+  [ ] Onboarding guide for new engineers
+
+  TESTING STANDARDS
+  [ ] Unit test coverage target: > 80% for all service code
+  [ ] Integration tests required for all Kafka consumer/producer paths
+  [ ] Contract tests for all inter-service APIs
+  [ ] Performance regression tests run on every release
+  [ ] Security tests (SAST via Semgrep, DAST via OWASP ZAP) in CI/CD
+
+  MONITORING AND ALERTING (production)
+  [ ] Kafka consumer lag alert (threshold: > 10,000 messages)
+  [ ] Edge node heartbeat alert (threshold: > 90s silence)
+  [ ] Alert latency p95 breach (threshold: > 15s)
+  [ ] Neo4j transaction error rate (threshold: > 0.1%)
+  [ ] ML model prediction drift alert (threshold: PSI > 0.2)
+  [ ] Disk usage alert on edge nodes (threshold: > 80% capacity)
+  [ ] Vault seal alert (immediate escalation if Vault seals)
+
+  COST CONTROLS
+  [ ] Monthly cloud cost review against budget
+  [ ] Auto-scaling policies with hard spend caps
+  [ ] S3 lifecycle policies for tiered storage (hot → warm → cold)
+  [ ] GPU cluster auto-shutdown when training jobs are not running
+
+
+================================================================================
+KNOWN RISKS AND OPEN DECISIONS
+================================================================================
+
+  RISK-001: Sovereign cloud availability
+            India's NIC Cloud may not offer all required managed services
+            (managed Kafka, managed Flink). May require self-managed installs.
+            Decision needed: NIC Cloud vs AWS GovCloud India vs hybrid.
+            Owner: Infrastructure lead | Due: Before Phase 1.4
+
+  RISK-002: DPDP Act 2023 biometric provisions
+            Collecting and processing face biometrics may require explicit
+            data principal consent under DPDP unless exempt under national
+            security provisions. Legal interpretation needed.
+            Owner: Legal counsel | Due: Before Phase 1.5.6 (face recognition)
+
+  RISK-003: Training data availability
+            GNN risk scoring requires labeled data (known terrorist actors vs
+            civilians). Such a dataset does not exist publicly. Must partner
+            with MHA/IB for labeled data under strict access controls.
+            Owner: ML lead + Program authority | Due: Before Phase 2.5.3
+
+  RISK-004: Inter-agency data sharing legal framework
+            No current legal framework mandates data sharing between IB, RAW,
+            state police for this system. MoU negotiations required.
+            Owner: Program authority | Due: Before Phase 4.2
+
+  RISK-005: Edge node supply chain security
+            Jetson Orin and camera hardware may be subject to supply chain
+            risk (firmware tampering, counterfeit hardware). Requires hardware
+            attestation program.
+            Owner: Security lead | Due: Before Phase 3.1
+
+  OPEN-001: Face recognition at public spaces — YES or NO?
+            Current design limits face recognition to checkpoints. If program
+            authority wants broader deployment, requires separate legal sign-off
+            and ethical review.
+
+  OPEN-002: Automated response actions — scope definition
+            System currently raises alerts only. If automated response actions
+            (e.g., locking a door, alerting patrol) are in scope for Phase 4,
+            the architecture requires changes and additional legal authorization.
+
+================================================================================
+END OF IMPLEMENTATION PLAN
+================================================================================
