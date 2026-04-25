@@ -1,0 +1,127 @@
+@prefix nsoe: <https://nsoe.gov.in/ontology#> .
+@prefix swrl: <http://www.w3.org/2003/11/swrl#> .
+@prefix swrlb: <http://www.w3.org/2003/11/swrlb#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+# ============================================================
+# NSOE SWRL RULES — Tier 1 Inference  Version 1.0.0
+# ============================================================
+# These rules are evaluated by the CorrelationEngine after
+# each new event batch is written to the knowledge graph.
+# They are encoded here as semantic metadata; runtime
+# evaluation uses a Python rule engine (see nsoe-intelligence-core).
+# ============================================================
+
+# RULE-001: CO-LOCATION DETECTION
+# If Person A and Person B were both sighted at the same Camera
+# within a 300-second window, infer they were co-located.
+#
+# Body: Sighting(?s1), Sighting(?s2), involvedAgent(?s1, ?p1),
+#        involvedAgent(?s2, ?p2), sightedAt(?s1, ?cam),
+#        sightedAt(?s2, ?cam), valid_time_start(?s1, ?t1),
+#        valid_time_start(?s2, ?t2),
+#        swrlb:subtract(?delta, ?t2, ?t1),
+#        swrlb:abs(?absDelta, ?delta),
+#        swrlb:lessThanOrEqual(?absDelta, 300),
+#        differentFrom(?p1, ?p2)
+# Head: communicatedWith(?p1, ?p2)
+#
+nsoe:Rule001_CoLocation a rdf:Statement ;
+    rdfs:label "RULE-001 Co-Location Detection"@en ;
+    rdfs:comment """
+        Preconditions:
+          - ?s1 rdf:type nsoe:Sighting
+          - ?s2 rdf:type nsoe:Sighting
+          - ?s1 nsoe:involvedAgent ?p1
+          - ?s2 nsoe:involvedAgent ?p2
+          - ?s1 nsoe:sightedAt ?cam
+          - ?s2 nsoe:sightedAt ?cam
+          - ?s1 nsoe:valid_time_start ?t1
+          - ?s2 nsoe:valid_time_start ?t2
+          - abs(?t2 - ?t1) <= 300 seconds
+          - ?p1 != ?p2
+        Consequence:
+          - ?p1 nsoe:coLocatedWith ?p2
+    """@en .
+
+# RULE-002: COMMUNICATION NETWORK INFERENCE
+# If Person A communicatedWith Person B AND Person B communicatedWith
+# Person C, infer Person A has indirectContact with Person C.
+#
+nsoe:Rule002_IndirectContact a rdf:Statement ;
+    rdfs:label "RULE-002 Indirect Contact Inference"@en ;
+    rdfs:comment """
+        Preconditions:
+          - ?p1 nsoe:communicatedWith ?p2
+          - ?p2 nsoe:communicatedWith ?p3
+          - ?p1 != ?p3
+        Consequence:
+          - ?p1 nsoe:indirectContact ?p3
+    """@en .
+
+# RULE-003: CAMPAIGN MEMBERSHIP INFERENCE
+# If a Person participatedIn an Event that is associated with a
+# ThreatCampaign, and the Person's risk_score >= 0.7,
+# infer the Person is associated with the campaign.
+#
+nsoe:Rule003_CampaignMembership a rdf:Statement ;
+    rdfs:label "RULE-003 Campaign Membership Inference"@en ;
+    rdfs:comment """
+        Preconditions:
+          - ?p rdf:type nsoe:Person
+          - ?p nsoe:participatedIn ?e
+          - ?e nsoe:associatedCampaign ?campaign
+          - ?p nsoe:risk_score ?rs
+          - ?rs >= 0.7
+        Consequence:
+          - ?p nsoe:associatedCampaign ?campaign
+    """@en .
+
+# RULE-004: LOITERING ESCALATION
+# If a Sighting track_id persists at the same Camera for > 300s
+# (detected by the CEP job), classify the event as LoiteringEvent.
+#
+nsoe:Rule004_Loitering a rdf:Statement ;
+    rdfs:label "RULE-004 Loitering Detection (CEP)"@en ;
+    rdfs:comment """
+        Implemented in Flink CEP job basic-cep-alert-job.
+        Pattern: same track_id at same camera_id for duration > 300 seconds.
+        Output: LoiteringAlert on alerts.active Kafka topic.
+    """@en .
+
+# RULE-005: WATCHLIST CO-LOCATION ALERT
+# If a watchlisted Person was co-located with another watchlisted Person.
+#
+nsoe:Rule005_WatchlistCoLocation a rdf:Statement ;
+    rdfs:label "RULE-005 Watchlist Co-Location"@en ;
+    rdfs:comment """
+        Preconditions:
+          - ?p1 nsoe:watchlist_flag true
+          - ?p2 nsoe:watchlist_flag true
+          - ?p1 nsoe:coLocatedWith ?p2
+          - ?p1 != ?p2
+        Consequence:
+          - Emit CorrelationEvent with alert_tier ESCALATION
+    """@en .
+
+# RULE-006: SOCMINT + PHYSICAL CORROBORATION
+# A ThreatPost mentioning an entity co-located near a physical event
+# in the same time window raises a corroborated alert.
+#
+nsoe:Rule006_SocmintPhysicalCorroboration a rdf:Statement ;
+    rdfs:label "RULE-006 SOCMINT + Physical Corroboration"@en ;
+    rdfs:comment """
+        Preconditions:
+          - ?post rdf:type nsoe:ThreatPost
+          - ?post nsoe:involvedAgent ?p
+          - ?s rdf:type nsoe:Sighting
+          - ?s nsoe:involvedAgent ?p
+          - abs(?post.valid_time_start - ?s.valid_time_start) <= 3600 seconds
+          - ?post.threat_intent_score >= 0.6
+          - ?p nsoe:watchlist_flag true
+        Consequence:
+          - Emit CorrelationEvent with alert_tier SOFT_ALERT
+            corroboratedBy [?post, ?s]
+    """@en .

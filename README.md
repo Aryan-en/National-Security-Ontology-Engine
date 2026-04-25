@@ -822,15 +822,15 @@ Higher automation reduces analyst workload but increases risk of unchecked false
 ### Misuse Prevention
 
 - **Query audit**: Every graph query, alert, and data access is logged with user identity, timestamp, and purpose code.
-- **Analyst access controls**: Analysts can only access data in their authorized geographic zone.
+- **Analyst access controls**:n only access data in their authorized geographic zone.
 - **Whistleblower protection**: Secure internal channel for reporting misuse; external reporting to oversight body.
-- **No automated arrest**: System never directly triggers law enforcement action. All responses require human authorization at the appropriate rank.
+- **No automated arrest**: System never directly triggers law enforcement action. All responses require humaon at the appropriate rank.
 
 ### Legal Framework (India-specific)
 
 - Compliance with: IT Act 2000, PDPB/DPDP Act 2023, CrPC surveillance provisions, MHA/IB operational guidelines
 - TRAI and DoT compliance for interception of communications
-- Data localization: All data stored on India-territory infrastructure
+- Data localata stored on India-territory infrastructure
 
 ---
 
@@ -840,23 +840,18 @@ Higher automation reduces analyst workload but increases risk of unchecked false
 
 Early-stage foundation repository. Ontology schema defined, data contracts in progress, baseline pipeline architecture designed.
 
-### Phase 1 — Foundation 
+Foundation (Months 1–6)
 - Core ontology finalized and versioned
 - Data ingestion pipelines for CCTV + cyber telemetry
 - Edge node prototype (Jetson Orin + YOLOv8)
-- Kafka + Flink stream processing backbone
-- Neo4j graph store with basic CRUD
-- Analyst dashboard prototype
-
-### Phase 2 — Intelligence Core 
-- Full ontology engine with SWRL rules
+- Ke with SWRL rules
 - Cross-domain correlation (CCTV + cyber)
 - SOCMINT integration
 - GNN risk scoring
 - Alert management and case management integration
 - Security architecture (zero trust, audit logging)
 
-### Phase 3 — Scale and Harden 
+### Phase 3 — Scale and Harden (Months 13–18)
 - Scale to 1,000 edge nodes
 - Federated model retraining
 - Regional aggregation tier deployment
@@ -864,7 +859,7 @@ Early-stage foundation repository. Ontology schema defined, data contracts in pr
 - Full DR/BCP testing
 - Penetration testing and security audit
 
-### Phase 4 — Production Rollout 
+### Phase 4 — Production Rollout (Months 19–24)
 - Scale to 10,000 edge nodes
 - Multi-agency integration
 - Legal compliance certification
@@ -873,3 +868,6 @@ Early-stage foundation repository. Ontology schema defined, data contracts in pr
 
 ---
 
+*This document serves as the primary technical design specification for the National Security Ontology Engine.*
+*Version: 0.1 | Status: Design Phase | Classification: RESTRICTED*
+ent focus is on defining ontology scope, data contracts, and baseline pipeline architecture.

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "nsoe-edge"
+version = "0.1.0"
+description = "NSOE edge node software for CCTV detection and event publishing"
+requires-python = ">=3.10"
+dependencies = [
+    "opencv-python-headless>=4.9",
+    "numpy>=1.26",
+    "ultralytics>=8.1",          # YOLOv8
+    "confluent-kafka>=2.3",
+    "fastavro>=1.9",
+    "rocksdict>=0.3",             # RocksDB Python bindings
+    "pyyaml>=6.0",
+    "requests>=2.31",
+    "tenacity>=8.2",              # retry/backoff
+    "prometheus-client>=0.20",
+    "structlog>=24.1",
+    "pydantic>=2.6",
+    "onvif-zeep>=0.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-mock>=3.12",
+    "ruff>=0.3",
+]

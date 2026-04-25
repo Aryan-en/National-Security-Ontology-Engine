@@ -1,0 +1,28 @@
+{
+  "type": "record",
+  "name": "AlertEvent",
+  "namespace": "in.gov.nsoe.schemas",
+  "doc": "Active alert produced by a Flink CEP job. Topic: alerts.active",
+  "fields": [
+    {"name": "alert_id",          "type": "string", "doc": "UUID v4"},
+    {"name": "alert_type",        "type": "string", "doc": "LOITERING | ABANDONED_OBJECT | CORROBORATED | WATCHLIST_CO_LOCATION | CYBER_PHYSICAL"},
+    {"name": "alert_tier",        "type": "string", "doc": "ANALYST_REVIEW | SOFT_ALERT | ESCALATION"},
+    {"name": "fused_confidence",  "type": "float"},
+    {"name": "camera_id",         "type": ["null", "string"], "default": null},
+    {"name": "geo_zone_id",       "type": ["null", "string"], "default": null},
+    {"name": "latitude",          "type": ["null", "double"], "default": null},
+    {"name": "longitude",         "type": ["null", "double"], "default": null},
+    {"name": "involved_track_ids","type": {"type": "array", "items": "string"}, "default": []},
+    {"name": "involved_entity_ids","type": {"type": "array", "items": "string"}, "default": []},
+    {
+      "name": "contributing_events",
+      "type": {"type": "array", "items": "string"},
+      "doc": "event_ids of events that contributed to this alert",
+      "default": []
+    },
+    {"name": "source_domains",    "type": {"type": "array", "items": "string"}, "default": ["CCTV"]},
+    {"name": "triggered_at_ms",   "type": "long", "doc": "Unix epoch ms when alert was triggered"},
+    {"name": "ttl_seconds",       "type": "int",  "default": 86400, "doc": "Time-to-live for this alert"},
+    {"name": "schema_version",    "type": "string", "default": "1.0.0"}
+  ]
+}

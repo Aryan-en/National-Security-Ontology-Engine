@@ -1,0 +1,224 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix nsoe: <https://nsoe.gov.in/ontology#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# ============================================================
+# NSOE SHACL CONSTRAINT SHAPES  —  Version 1.0.0
+# ============================================================
+
+# --- Sighting Shape ---
+nsoe:SightingShape a sh:NodeShape ;
+    sh:targetClass nsoe:Sighting ;
+    sh:property [
+        sh:path nsoe:entityId ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+    ] ;
+    sh:property [
+        sh:path nsoe:track_id ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path nsoe:sightedAt ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:class nsoe:Camera ;
+    ] ;
+    sh:property [
+        sh:path nsoe:detection_class ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("person" "bag" "vehicle" "weapon" "unknown") ;
+    ] ;
+    sh:property [
+        sh:path nsoe:detection_confidence ;
+        sh:minCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+    ] ;
+    sh:property [
+        sh:path nsoe:valid_time_start ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:dateTimeStamp ;
+    ] ;
+    sh:property [
+        sh:path nsoe:ingested_at ;
+        sh:minCount 1 ;
+        sh:datatype xsd:dateTimeStamp ;
+    ] ;
+    sh:property [
+        sh:path nsoe:source_id ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path nsoe:classification_level ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("UNCLASSIFIED" "RESTRICTED" "SECRET" "TOP_SECRET") ;
+    ] .
+
+# --- Camera Shape ---
+nsoe:CameraShape a sh:NodeShape ;
+    sh:targetClass nsoe:Camera ;
+    sh:property [
+        sh:path nsoe:entityId ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path nsoe:camera_id ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path nsoe:latitude ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive -90.0 ; sh:maxInclusive 90.0 ;
+    ] ;
+    sh:property [
+        sh:path nsoe:longitude ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive -180.0 ; sh:maxInclusive 180.0 ;
+    ] ;
+    sh:property [
+        sh:path nsoe:geo_zone_id ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+    ] .
+
+# --- Person Shape ---
+nsoe:PersonShape a sh:NodeShape ;
+    sh:targetClass nsoe:Person ;
+    sh:property [
+        sh:path nsoe:entityId ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path nsoe:risk_score ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ;
+    ] ;
+    sh:property [
+        sh:path nsoe:confidence_score ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ;
+    ] ;
+    sh:property [
+        sh:path nsoe:watchlist_flag ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+    ] ;
+    sh:property [
+        sh:path nsoe:classification_level ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("UNCLASSIFIED" "RESTRICTED" "SECRET" "TOP_SECRET") ;
+    ] .
+
+# --- CorrelationEvent Shape ---
+nsoe:CorrelationEventShape a sh:NodeShape ;
+    sh:targetClass nsoe:CorrelationEvent ;
+    sh:property [
+        sh:path nsoe:entityId ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path nsoe:fused_confidence ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ;
+    ] ;
+    sh:property [
+        sh:path nsoe:alert_tier ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("ANALYST_REVIEW" "SOFT_ALERT" "ESCALATION") ;
+    ] ;
+    sh:property [
+        sh:path nsoe:corroboratedBy ;
+        sh:minCount 2 ;
+        sh:class nsoe:Event ;
+    ] ;
+    sh:property [
+        sh:path nsoe:valid_time_start ;
+        sh:minCount 1 ;
+        sh:datatype xsd:dateTimeStamp ;
+    ] ;
+    sh:property [
+        sh:path nsoe:ingested_at ;
+        sh:minCount 1 ;
+        sh:datatype xsd:dateTimeStamp ;
+    ] .
+
+# --- ThreatPost Shape ---
+nsoe:ThreatPostShape a sh:NodeShape ;
+    sh:targetClass nsoe:ThreatPost ;
+    sh:property [
+        sh:path nsoe:entityId ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path nsoe:platform ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path nsoe:threat_intent_score ;
+        sh:minCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ;
+    ] ;
+    sh:property [
+        sh:path nsoe:source_credibility ;
+        sh:minCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ;
+    ] ;
+    sh:property [
+        sh:path nsoe:valid_time_start ;
+        sh:minCount 1 ;
+        sh:datatype xsd:dateTimeStamp ;
+    ] .
+
+# --- Indicator Shape ---
+nsoe:IndicatorShape a sh:NodeShape ;
+    sh:targetClass nsoe:Indicator ;
+    sh:property [
+        sh:path nsoe:entityId ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path nsoe:ioc_value ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path nsoe:ioc_type ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("ip" "domain" "hash" "url" "email") ;
+    ] ;
+    sh:property [
+        sh:path nsoe:confidence_score ;
+        sh:minCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ; sh:maxInclusive 1.0 ;
+    ] ;
+    sh:property [
+        sh:path nsoe:valid_time_start ;
+        sh:minCount 1 ;
+        sh:datatype xsd:dateTimeStamp ;
+    ] .

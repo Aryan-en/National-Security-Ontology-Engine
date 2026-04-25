@@ -1,0 +1,81 @@
+{
+  "type": "record",
+  "name": "EdgeCctvEvent",
+  "namespace": "in.gov.nsoe.schemas",
+  "doc": "Raw detection event emitted by an edge CCTV node. Topic: edge.cctv.events",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "UUID v4 — unique per detection event"
+    },
+    {
+      "name": "edge_node_id",
+      "type": "string",
+      "doc": "Identifier of the edge Jetson node that produced this event"
+    },
+    {
+      "name": "camera_id",
+      "type": "string",
+      "doc": "Stable identifier for the physical camera"
+    },
+    {
+      "name": "track_id",
+      "type": "string",
+      "doc": "ByteTrack / DeepSORT persistent track identifier within this camera session"
+    },
+    {
+      "name": "detection_class",
+      "type": {
+        "type": "enum",
+        "name": "DetectionClass",
+        "symbols": ["PERSON", "BAG", "VEHICLE", "WEAPON", "UNKNOWN"]
+      }
+    },
+    {
+      "name": "detection_confidence",
+      "type": "float",
+      "doc": "YOLO model confidence score [0.0, 1.0]"
+    },
+    {
+      "name": "bbox",
+      "type": {
+        "type": "record",
+        "name": "BoundingBox",
+        "fields": [
+          {"name": "x1", "type": "float"},
+          {"name": "y1", "type": "float"},
+          {"name": "x2", "type": "float"},
+          {"name": "y2", "type": "float"}
+        ]
+      }
+    },
+    {
+      "name": "frame_timestamp_ms",
+      "type": "long",
+      "doc": "Unix epoch milliseconds of the source video frame (device clock)"
+    },
+    {
+      "name": "device_clock_synced",
+      "type": "boolean",
+      "doc": "True if the device NTP clock was within 2s of GPS reference at capture time"
+    },
+    {
+      "name": "server_receipt_timestamp_ms",
+      "type": ["null", "long"],
+      "default": null,
+      "doc": "Server-side receipt timestamp (ms). Set by Kafka producer interceptor."
+    },
+    {
+      "name": "face_embedding",
+      "type": ["null", {"type": "array", "items": "float"}],
+      "default": null,
+      "doc": "512-dim face re-ID embedding vector. Null if no face detected."
+    },
+    {
+      "name": "schema_version",
+      "type": "string",
+      "default": "1.0.0"
+    }
+  ]
+}
