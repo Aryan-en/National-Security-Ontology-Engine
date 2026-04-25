@@ -1,0 +1,406 @@
+@prefix nsoe: <https://nsoe.gov.in/ontology#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# ============================================================
+# NSOE CORE ONTOLOGY  —  Version 1.0.0
+# National Security Ontology Engine
+# ============================================================
+
+<https://nsoe.gov.in/ontology>
+    a owl:Ontology ;
+    dcterms:title "National Security Ontology Engine — Core Ontology" ;
+    dcterms:description "OWL 2 DL ontology for multi-domain threat intelligence fusion covering CCTV, cyber, and SOCMINT domains." ;
+    dcterms:creator "NSOE Engineering Team" ;
+    dcterms:created "2026-04-25"^^xsd:date ;
+    owl:versionInfo "1.0.0" ;
+    owl:versionIRI <https://nsoe.gov.in/ontology/1.0.0> .
+
+# ============================================================
+# TOP-LEVEL CLASSES
+# ============================================================
+
+nsoe:Agent a owl:Class ;
+    rdfs:label "Agent"@en ;
+    rdfs:comment "Any person, organization, or autonomous system that can perform actions in the world."@en .
+
+nsoe:Event a owl:Class ;
+    rdfs:label "Event"@en ;
+    rdfs:comment "A discrete occurrence in time, observed by one or more sensors or sources."@en .
+
+nsoe:Location a owl:Class ;
+    rdfs:label "Location"@en ;
+    rdfs:comment "A physical or logical place associated with an agent or event."@en .
+
+nsoe:Artifact a owl:Class ;
+    rdfs:label "Artifact"@en ;
+    rdfs:comment "A tangible or digital object of intelligence interest."@en .
+
+nsoe:ThreatCampaign a owl:Class ;
+    rdfs:label "ThreatCampaign"@en ;
+    rdfs:comment "A coordinated series of activities attributed to a threat actor group with a common goal."@en .
+
+nsoe:Observation a owl:Class ;
+    rdfs:label "Observation"@en ;
+    rdfs:comment "A raw or processed data point from a sensor or source before entity resolution."@en .
+
+# ============================================================
+# AGENT SUB-CLASSES
+# ============================================================
+
+nsoe:Person a owl:Class ;
+    rdfs:subClassOf nsoe:Agent ;
+    rdfs:label "Person"@en ;
+    rdfs:comment "A human individual tracked by the system."@en .
+
+nsoe:Organization a owl:Class ;
+    rdfs:subClassOf nsoe:Agent ;
+    rdfs:label "Organization"@en ;
+    rdfs:comment "A formal or informal group of persons."@en .
+
+nsoe:ThreatActor a owl:Class ;
+    rdfs:subClassOf nsoe:Agent ;
+    rdfs:label "ThreatActor"@en ;
+    rdfs:comment "An agent attributed to adversarial activity."@en .
+
+nsoe:ThreatGroup a owl:Class ;
+    rdfs:subClassOf nsoe:Organization ;
+    rdfs:subClassOf nsoe:ThreatActor ;
+    rdfs:label "ThreatGroup"@en .
+
+# ============================================================
+# EVENT SUB-CLASSES
+# ============================================================
+
+nsoe:PhysicalEvent a owl:Class ;
+    rdfs:subClassOf nsoe:Event ;
+    rdfs:label "PhysicalEvent"@en .
+
+nsoe:CyberEvent a owl:Class ;
+    rdfs:subClassOf nsoe:Event ;
+    rdfs:label "CyberEvent"@en .
+
+nsoe:SocialMediaEvent a owl:Class ;
+    rdfs:subClassOf nsoe:Event ;
+    rdfs:label "SocialMediaEvent"@en .
+
+nsoe:Sighting a owl:Class ;
+    rdfs:subClassOf nsoe:PhysicalEvent ;
+    rdfs:label "Sighting"@en ;
+    rdfs:comment "A detection of a Person or Artifact by a CCTV sensor."@en .
+
+nsoe:ThreatPost a owl:Class ;
+    rdfs:subClassOf nsoe:SocialMediaEvent ;
+    rdfs:label "ThreatPost"@en ;
+    rdfs:comment "A social media post with assessed threat intent."@en .
+
+nsoe:NetworkIncident a owl:Class ;
+    rdfs:subClassOf nsoe:CyberEvent ;
+    rdfs:label "NetworkIncident"@en .
+
+nsoe:Intrusion a owl:Class ;
+    rdfs:subClassOf nsoe:CyberEvent ;
+    rdfs:label "Intrusion"@en .
+
+nsoe:CorrelationEvent a owl:Class ;
+    rdfs:subClassOf nsoe:Event ;
+    rdfs:label "CorrelationEvent"@en ;
+    rdfs:comment "A synthetic event produced by the correlation engine when multiple independent signals converge."@en .
+
+# ============================================================
+# LOCATION SUB-CLASSES
+# ============================================================
+
+nsoe:PhysicalLocation a owl:Class ;
+    rdfs:subClassOf nsoe:Location ;
+    rdfs:label "PhysicalLocation"@en .
+
+nsoe:Camera a owl:Class ;
+    rdfs:subClassOf nsoe:PhysicalLocation ;
+    rdfs:label "Camera"@en ;
+    rdfs:comment "A CCTV or IP camera sensor node."@en .
+
+nsoe:Facility a owl:Class ;
+    rdfs:subClassOf nsoe:PhysicalLocation ;
+    rdfs:label "Facility"@en .
+
+nsoe:GeoZone a owl:Class ;
+    rdfs:subClassOf nsoe:PhysicalLocation ;
+    rdfs:label "GeoZone"@en ;
+    rdfs:comment "A named geographic zone used for CEP pattern matching."@en .
+
+nsoe:CyberAddress a owl:Class ;
+    rdfs:subClassOf nsoe:Location ;
+    rdfs:label "CyberAddress"@en .
+
+nsoe:IPAddress a owl:Class ;
+    rdfs:subClassOf nsoe:CyberAddress ;
+    rdfs:label "IPAddress"@en .
+
+nsoe:Domain a owl:Class ;
+    rdfs:subClassOf nsoe:CyberAddress ;
+    rdfs:label "Domain"@en .
+
+# ============================================================
+# ARTIFACT SUB-CLASSES
+# ============================================================
+
+nsoe:PhysicalArtifact a owl:Class ;
+    rdfs:subClassOf nsoe:Artifact ;
+    rdfs:label "PhysicalArtifact"@en .
+
+nsoe:Vehicle a owl:Class ;
+    rdfs:subClassOf nsoe:PhysicalArtifact ;
+    rdfs:label "Vehicle"@en .
+
+nsoe:Weapon a owl:Class ;
+    rdfs:subClassOf nsoe:PhysicalArtifact ;
+    rdfs:label "Weapon"@en .
+
+nsoe:CyberArtifact a owl:Class ;
+    rdfs:subClassOf nsoe:Artifact ;
+    rdfs:label "CyberArtifact"@en .
+
+nsoe:Indicator a owl:Class ;
+    rdfs:subClassOf nsoe:CyberArtifact ;
+    rdfs:label "Indicator"@en ;
+    rdfs:comment "A cyber indicator of compromise (IoC)."@en .
+
+nsoe:Malware a owl:Class ;
+    rdfs:subClassOf nsoe:CyberArtifact ;
+    rdfs:label "Malware"@en .
+
+# ============================================================
+# OBJECT PROPERTIES (RELATIONSHIPS)
+# ============================================================
+
+nsoe:sightedAt a owl:ObjectProperty ;
+    rdfs:label "sightedAt"@en ;
+    rdfs:domain nsoe:Sighting ;
+    rdfs:range nsoe:Camera ;
+    rdfs:comment "Links a Sighting event to the Camera sensor that produced it."@en .
+
+nsoe:involvedAgent a owl:ObjectProperty ;
+    rdfs:label "involvedAgent"@en ;
+    rdfs:domain nsoe:Event ;
+    rdfs:range nsoe:Agent ;
+    rdfs:comment "An agent that participated in or was observed during an event."@en .
+
+nsoe:participatedIn a owl:ObjectProperty ;
+    rdfs:label "participatedIn"@en ;
+    rdfs:domain nsoe:Agent ;
+    rdfs:range nsoe:Event ;
+    owl:inverseOf nsoe:involvedAgent .
+
+nsoe:communicatedWith a owl:ObjectProperty ;
+    rdfs:label "communicatedWith"@en ;
+    rdfs:domain nsoe:Agent ;
+    rdfs:range nsoe:Agent ;
+    a owl:SymmetricProperty ;
+    rdfs:comment "Direct communication link between two agents."@en .
+
+nsoe:operatesInfrastructure a owl:ObjectProperty ;
+    rdfs:label "operatesInfrastructure"@en ;
+    rdfs:domain nsoe:ThreatActor ;
+    rdfs:range nsoe:CyberAddress .
+
+nsoe:associatedCampaign a owl:ObjectProperty ;
+    rdfs:label "associatedCampaign"@en ;
+    rdfs:domain [ owl:unionOf (nsoe:Agent nsoe:Event nsoe:Artifact) ] ;
+    rdfs:range nsoe:ThreatCampaign .
+
+nsoe:corroboratedBy a owl:ObjectProperty ;
+    rdfs:label "corroboratedBy"@en ;
+    rdfs:domain nsoe:Event ;
+    rdfs:range nsoe:Event ;
+    rdfs:comment "Links a CorrelationEvent or soft alert to the independent evidence events that support it."@en .
+
+nsoe:locatedAt a owl:ObjectProperty ;
+    rdfs:label "locatedAt"@en ;
+    rdfs:domain nsoe:Agent ;
+    rdfs:range nsoe:Location .
+
+nsoe:observedAt a owl:ObjectProperty ;
+    rdfs:label "observedAt"@en ;
+    rdfs:domain nsoe:Event ;
+    rdfs:range nsoe:Location .
+
+nsoe:memberOf a owl:ObjectProperty ;
+    rdfs:label "memberOf"@en ;
+    rdfs:domain nsoe:Person ;
+    rdfs:range nsoe:Organization .
+
+nsoe:targets a owl:ObjectProperty ;
+    rdfs:label "targets"@en ;
+    rdfs:domain nsoe:ThreatActor ;
+    rdfs:range [ owl:unionOf (nsoe:Agent nsoe:Location nsoe:Artifact) ] .
+
+nsoe:uses a owl:ObjectProperty ;
+    rdfs:label "uses"@en ;
+    rdfs:domain nsoe:ThreatActor ;
+    rdfs:range nsoe:Artifact .
+
+nsoe:hasIndicator a owl:ObjectProperty ;
+    rdfs:label "hasIndicator"@en ;
+    rdfs:domain nsoe:ThreatCampaign ;
+    rdfs:range nsoe:Indicator .
+
+nsoe:triggeredAlert a owl:ObjectProperty ;
+    rdfs:label "triggeredAlert"@en ;
+    rdfs:domain nsoe:CorrelationEvent ;
+    rdfs:range nsoe:ThreatCampaign .
+
+# ============================================================
+# DATATYPE PROPERTIES (ATTRIBUTES)
+# ============================================================
+
+nsoe:entityId a owl:DatatypeProperty ;
+    rdfs:label "entityId"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Globally unique identifier for any entity in the graph."@en .
+
+nsoe:risk_score a owl:DatatypeProperty ;
+    rdfs:label "risk_score"@en ;
+    rdfs:domain nsoe:Agent ;
+    rdfs:range xsd:decimal ;
+    rdfs:comment "GNN-computed risk score in [0.0, 1.0]."@en .
+
+nsoe:confidence_score a owl:DatatypeProperty ;
+    rdfs:label "confidence_score"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:decimal ;
+    rdfs:comment "Analyst or model confidence in this assertion, in [0.0, 1.0]."@en .
+
+nsoe:ingested_at a owl:DatatypeProperty ;
+    rdfs:label "ingested_at"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:dateTimeStamp .
+
+nsoe:classification_level a owl:DatatypeProperty ;
+    rdfs:label "classification_level"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Data classification: UNCLASSIFIED | RESTRICTED | SECRET | TOP_SECRET."@en .
+
+nsoe:source_id a owl:DatatypeProperty ;
+    rdfs:label "source_id"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:string .
+
+nsoe:valid_time_start a owl:DatatypeProperty ;
+    rdfs:label "valid_time_start"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:dateTimeStamp ;
+    rdfs:comment "Start of the time interval during which this assertion is valid."@en .
+
+nsoe:valid_time_end a owl:DatatypeProperty ;
+    rdfs:label "valid_time_end"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:dateTimeStamp .
+
+nsoe:track_id a owl:DatatypeProperty ;
+    rdfs:label "track_id"@en ;
+    rdfs:domain nsoe:Sighting ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Tracker-assigned persistent track identifier for this sighting."@en .
+
+nsoe:camera_id a owl:DatatypeProperty ;
+    rdfs:label "camera_id"@en ;
+    rdfs:domain nsoe:Camera ;
+    rdfs:range xsd:string .
+
+nsoe:latitude a owl:DatatypeProperty ;
+    rdfs:label "latitude"@en ;
+    rdfs:domain nsoe:PhysicalLocation ;
+    rdfs:range xsd:decimal .
+
+nsoe:longitude a owl:DatatypeProperty ;
+    rdfs:label "longitude"@en ;
+    rdfs:domain nsoe:PhysicalLocation ;
+    rdfs:range xsd:decimal .
+
+nsoe:geo_zone_id a owl:DatatypeProperty ;
+    rdfs:label "geo_zone_id"@en ;
+    rdfs:domain nsoe:Camera ;
+    rdfs:range xsd:string .
+
+nsoe:alert_tier a owl:DatatypeProperty ;
+    rdfs:label "alert_tier"@en ;
+    rdfs:domain nsoe:CorrelationEvent ;
+    rdfs:range xsd:string ;
+    rdfs:comment "ANALYST_REVIEW | SOFT_ALERT | ESCALATION"@en .
+
+nsoe:fused_confidence a owl:DatatypeProperty ;
+    rdfs:label "fused_confidence"@en ;
+    rdfs:domain nsoe:CorrelationEvent ;
+    rdfs:range xsd:decimal .
+
+nsoe:source_domain a owl:DatatypeProperty ;
+    rdfs:label "source_domain"@en ;
+    rdfs:domain nsoe:Event ;
+    rdfs:range xsd:string ;
+    rdfs:comment "CCTV | CYBER | SOCMINT"@en .
+
+nsoe:detection_class a owl:DatatypeProperty ;
+    rdfs:label "detection_class"@en ;
+    rdfs:domain nsoe:Sighting ;
+    rdfs:range xsd:string ;
+    rdfs:comment "YOLO detection class label: person, bag, vehicle, weapon, etc."@en .
+
+nsoe:bbox_x1 a owl:DatatypeProperty ; rdfs:domain nsoe:Sighting ; rdfs:range xsd:decimal .
+nsoe:bbox_y1 a owl:DatatypeProperty ; rdfs:domain nsoe:Sighting ; rdfs:range xsd:decimal .
+nsoe:bbox_x2 a owl:DatatypeProperty ; rdfs:domain nsoe:Sighting ; rdfs:range xsd:decimal .
+nsoe:bbox_y2 a owl:DatatypeProperty ; rdfs:domain nsoe:Sighting ; rdfs:range xsd:decimal .
+nsoe:detection_confidence a owl:DatatypeProperty ; rdfs:domain nsoe:Sighting ; rdfs:range xsd:decimal .
+
+nsoe:ioc_value a owl:DatatypeProperty ;
+    rdfs:label "ioc_value"@en ;
+    rdfs:domain nsoe:Indicator ;
+    rdfs:range xsd:string .
+
+nsoe:ioc_type a owl:DatatypeProperty ;
+    rdfs:label "ioc_type"@en ;
+    rdfs:domain nsoe:Indicator ;
+    rdfs:range xsd:string ;
+    rdfs:comment "ip | domain | hash | url | email"@en .
+
+nsoe:tlp_marking a owl:DatatypeProperty ;
+    rdfs:label "tlp_marking"@en ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:string ;
+    rdfs:comment "Traffic Light Protocol: WHITE | GREEN | AMBER | RED"@en .
+
+nsoe:watchlist_flag a owl:DatatypeProperty ;
+    rdfs:label "watchlist_flag"@en ;
+    rdfs:domain nsoe:Person ;
+    rdfs:range xsd:boolean .
+
+nsoe:threat_intent_score a owl:DatatypeProperty ;
+    rdfs:label "threat_intent_score"@en ;
+    rdfs:domain nsoe:ThreatPost ;
+    rdfs:range xsd:decimal .
+
+nsoe:platform a owl:DatatypeProperty ;
+    rdfs:label "platform"@en ;
+    rdfs:domain nsoe:SocialMediaEvent ;
+    rdfs:range xsd:string .
+
+nsoe:source_credibility a owl:DatatypeProperty ;
+    rdfs:label "source_credibility"@en ;
+    rdfs:domain nsoe:SocialMediaEvent ;
+    rdfs:range xsd:decimal .
+
+# ============================================================
+# DISJOINTNESS AXIOMS
+# ============================================================
+
+[] a owl:AllDisjointClasses ;
+    owl:members (nsoe:Agent nsoe:Event nsoe:Location nsoe:Artifact nsoe:ThreatCampaign) .
+
+[] a owl:AllDisjointClasses ;
+    owl:members (nsoe:PhysicalEvent nsoe:CyberEvent nsoe:SocialMediaEvent nsoe:CorrelationEvent) .

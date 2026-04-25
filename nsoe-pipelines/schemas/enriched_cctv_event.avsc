@@ -1,0 +1,50 @@
+{
+  "type": "record",
+  "name": "EnrichedCctvEvent",
+  "namespace": "in.gov.nsoe.schemas",
+  "doc": "CCTV event after Flink enrichment. Topic: enriched.cctv.events",
+  "fields": [
+    {"name": "event_id",           "type": "string"},
+    {"name": "edge_node_id",       "type": "string"},
+    {"name": "camera_id",          "type": "string"},
+    {"name": "track_id",           "type": "string"},
+    {"name": "detection_class",    "type": "string"},
+    {"name": "detection_confidence","type": "float"},
+    {
+      "name": "bbox",
+      "type": {
+        "type": "record",
+        "name": "BoundingBox",
+        "fields": [
+          {"name": "x1", "type": "float"},
+          {"name": "y1", "type": "float"},
+          {"name": "x2", "type": "float"},
+          {"name": "y2", "type": "float"}
+        ]
+      }
+    },
+    {
+      "name": "normalized_timestamp_ms",
+      "type": "long",
+      "doc": "Authoritative timestamp after clock-anomaly correction"
+    },
+    {"name": "device_clock_synced", "type": "boolean"},
+    {
+      "name": "geo_location",
+      "type": {
+        "type": "record",
+        "name": "GeoLocation",
+        "fields": [
+          {"name": "latitude",    "type": "double"},
+          {"name": "longitude",   "type": "double"},
+          {"name": "geo_zone_id", "type": "string"},
+          {"name": "zone_name",   "type": "string"}
+        ]
+      },
+      "doc": "Enriched from camera metadata lookup table"
+    },
+    {"name": "face_embedding", "type": ["null", {"type": "array", "items": "float"}], "default": null},
+    {"name": "dedup_hash",     "type": "string", "doc": "SHA-256(track_id + camera_id + 30s_bucket) for dedup"},
+    {"name": "schema_version", "type": "string", "default": "1.0.0"}
+  ]
+}

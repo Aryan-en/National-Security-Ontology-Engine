@@ -1,0 +1,42 @@
+{
+  "type": "record",
+  "name": "OntologyWriteCommand",
+  "namespace": "in.gov.nsoe.schemas",
+  "doc": "Graph write instruction produced by the ingestion service. Topic: ontology.write.commands",
+  "fields": [
+    {"name": "command_id",        "type": "string"},
+    {"name": "command_type",      "type": "string", "doc": "UPSERT_NODE | CREATE_RELATIONSHIP | DELETE_NODE"},
+    {"name": "source_event_id",   "type": "string"},
+    {"name": "source_domain",     "type": "string"},
+    {
+      "name": "node",
+      "type": ["null", {
+        "type": "record",
+        "name": "NodeSpec",
+        "fields": [
+          {"name": "label",       "type": "string"},
+          {"name": "entity_id",   "type": "string"},
+          {"name": "properties",  "type": {"type": "map", "values": "string"}}
+        ]
+      }],
+      "default": null
+    },
+    {
+      "name": "relationship",
+      "type": ["null", {
+        "type": "record",
+        "name": "RelationshipSpec",
+        "fields": [
+          {"name": "type",          "type": "string"},
+          {"name": "from_entity_id","type": "string"},
+          {"name": "to_entity_id",  "type": "string"},
+          {"name": "properties",    "type": {"type": "map", "values": "string"}}
+        ]
+      }],
+      "default": null
+    },
+    {"name": "shacl_validated",   "type": "boolean", "default": false},
+    {"name": "issued_at_ms",      "type": "long"},
+    {"name": "schema_version",    "type": "string", "default": "1.0.0"}
+  ]
+}

@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "nsoe-edge-nodes"
+    static_configs:
+      - targets: []     # populated dynamically via service discovery in production
+    metrics_path: /metrics
+
+  - job_name: "nsoe-api"
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
+
+  - job_name: "kafka"
+    static_configs:
+      - targets: ["kafka:9101"]
+
+  - job_name: "neo4j"
+    static_configs:
+      - targets: ["neo4j:2004"]
+
+  - job_name: "flink"
+    static_configs:
+      - targets: ["flink-jobmanager:9249"]
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files:
+  - "alerts/*.yml"

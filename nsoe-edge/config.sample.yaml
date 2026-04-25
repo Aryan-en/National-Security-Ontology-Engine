@@ -1,0 +1,42 @@
+# NSOE Edge Node Configuration Sample
+# Copy to /etc/nsoe-edge/config.yaml on each Jetson node
+
+node:
+  edge_node_id: "edge-jetson-001"
+  target_fps: 5
+  motion_trigger: true
+  detection_conf_threshold: 0.45
+  kafka_bootstrap_servers: "10.0.0.10:9092"
+  schema_registry_url: "http://10.0.0.10:8081"
+  buffer_max_bytes: 2147483648
+  classification_level: "RESTRICTED"
+  watchlist_refresh_interval_s: 300
+  log_level: "INFO"
+  config_version: "1.0.0"
+
+ssl:
+  ca:   "/etc/nsoe-edge/certs/ca.crt"
+  cert: "/etc/nsoe-edge/certs/client.crt"
+  key:  "/etc/nsoe-edge/certs/client.key"
+
+config_server:
+  url: "https://nsoe-api.internal:8443"
+
+cameras:
+  - camera_id: "cam-site-a-001"
+    type: "rtsp"
+    rtsp_url: "rtsp://admin:password@192.168.10.101/stream1"
+    username: "admin"
+    password: "password"
+    geo_zone_id: "ZONE_DELHI_01"
+    latitude: 28.6139
+    longitude: 77.2090
+
+  - camera_id: "cam-site-a-002"
+    type: "rtsp"
+    rtsp_url: "rtsp://admin:password@192.168.10.102/stream1"
+    username: "admin"
+    password: "password"
+    geo_zone_id: "ZONE_DELHI_01"
+    latitude: 28.6142
+    longitude: 77.2095

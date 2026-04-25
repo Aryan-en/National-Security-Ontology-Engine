@@ -1,0 +1,225 @@
+version: "3.9"
+
+# NSOE Development Environment
+# Starts all backing services locally.
+# Usage: docker compose -f docker-compose.dev.yml up -d
+
+networks:
+  nsoe-net:
+    driver: bridge
+
+volumes:
+  kafka_data:
+  zookeeper_data:
+  neo4j_data:
+  elasticsearch_data:
+  redis_data:
+  minio_data:
+  grafana_data:
+  prometheus_data:
+
+services:
+
+  # ---- Zookeeper (Kafka dependency) ----
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  # ---- Kafka ----
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    hostname: kafka
+    depends_on: [zookeeper]
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 168
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  # ---- Schema Registry ----
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.0
+    hostname: schema-registry
+    depends_on: [kafka]
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  # ---- Kafka UI ----
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on: [kafka, schema-registry]
+    ports:
+      - "8082:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: nsoe-dev
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  # ---- Neo4j ----
+  neo4j:
+    image: neo4j:5.19-community
+    hostname: neo4j
+    ports:
+      - "7474:7474"   # browser
+      - "7687:7687"   # bolt
+    environment:
+      NEO4J_AUTH: neo4j/nsoe-dev-password
+      NEO4J_server_memory_pagecache_size: 1G
+      NEO4J_server_memory_heap_max__size: 2G
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_apoc_export_file_enabled: "true"
+      NEO4J_apoc_import_file_enabled: "true"
+    volumes:
+      - neo4j_data:/data
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  # ---- Elasticsearch ----
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    hostname: elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+      xpack.security.enabled: "false"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks: [nsoe-net]
+    restart: unless-stopped
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  # ---- Redis ----
+  redis:
+    image: redis:7.2-alpine
+    hostname: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  # ---- MinIO ----
+  minio:
+    image: minio/minio:latest
+    hostname: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: nsoe-admin
+      MINIO_ROOT_PASSWORD: nsoe-dev-minio
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  # ---- Prometheus ----
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=15d"
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  # ---- Grafana ----
+  grafana:
+    image: grafana/grafana:10.4.1
+    hostname: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: nsoe-dev-grafana
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on: [prometheus]
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  # ---- Keycloak ----
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    hostname: keycloak
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: nsoe-dev-keycloak
+      KC_DB: dev-file
+    command: start-dev
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  # ---- Apache Flink (session cluster) ----
+  flink-jobmanager:
+    image: flink:1.18-scala_2.12-java11
+    hostname: flink-jobmanager
+    ports:
+      - "8083:8081"
+    command: jobmanager
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: flink-jobmanager
+        parallelism.default: 4
+        state.backend: rocksdb
+        state.checkpoints.dir: s3://nsoe-flink-checkpoints/
+        s3.endpoint: http://minio:9000
+        s3.access-key: nsoe-admin
+        s3.secret-key: nsoe-dev-minio
+    networks: [nsoe-net]
+    restart: unless-stopped
+
+  flink-taskmanager:
+    image: flink:1.18-scala_2.12-java11
+    hostname: flink-taskmanager
+    depends_on: [flink-jobmanager]
+    command: taskmanager
+    scale: 2
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 4
+    networks: [nsoe-net]
+    restart: unless-stopped
