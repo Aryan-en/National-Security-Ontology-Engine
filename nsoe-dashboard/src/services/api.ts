@@ -116,3 +116,128 @@ export const feedbackApi = {
   submit: (alertId: string, verdict: "TRUE_POSITIVE" | "FALSE_POSITIVE", notes = "") =>
     api.post<void>("/feedback", { alert_id: alertId, verdict, notes }),
 };
+
+// ── Case Management ──────────────────────────────────────────
+
+export interface CaseEvidence {
+  evidence_id: string;
+  evidence_type: "GRAPH_ENTITY" | "VIDEO_CLIP" | "DOCUMENT" | "INDICATOR";
+  uri: string;
+  added_at: string;
+}
+
+export interface CaseComment {
+  comment_id: string;
+  body: string;
+  author_sub: string;
+  created_at: string;
+}
+
+export interface CaseSummary {
+  case_id: string;
+  title: string;
+  status: "OPEN" | "IN_PROGRESS" | "CLOSED" | "ESCALATED";
+  priority: string;
+  assigned_to: string;
+  created_at: string;
+  sla_deadline: string;
+  classification_level: string;
+}
+
+export interface CaseTimeline {
+  case: CaseSummary;
+  alerts: { alert_id: string; alert_type: string; alert_tier: string; triggered_at: string }[];
+  evidence: CaseEvidence[];
+  comments: CaseComment[];
+}
+
+export interface CaseListResponse {
+  cases: CaseSummary[];
+  total: number;
+}
+
+export const casesApi = {
+  list: (statuses = ["OPEN", "IN_PROGRESS"], assignedToMe = false) =>
+    api.get<CaseListResponse>(
+      `/cases?${statuses.map(s => `status=${s}`).join("&")}&assigned_to_me=${assignedToMe}`,
+    ),
+  get: (id: string) => api.get<CaseTimeline>(`/cases/${id}`),
+  create: (alertId: string, alertTier: string, title?: string) =>
+    api.post<{ case_id: string }>("/cases", { alert_id: alertId, alert_tier: alertTier, title }),
+  addEvidence: (caseId: string, evidenceType: CaseEvidence["evidence_type"], uri: string, description = "") =>
+    api.post<{ evidence_id: string }>(`/cases/${caseId}/evidence`, { evidence_type: evidenceType, uri, description }),
+  addComment: (caseId: string, body: string) =>
+    api.post<{ comment_id: string }>(`/cases/${caseId}/comments`, { body }),
+  updateStatus: (caseId: string, status: CaseSummary["status"]) =>
+    api.put<void>(`/cases/${caseId}/status`, { status }),
+};
+
+// ── SOCMINT Feed ─────────────────────────────────────────────
+
+export interface SocmintPost {
+  event_id: string;
+  platform: "TWITTER" | "TELEGRAM" | "RSS";
+  author_handle: string;
+  content: string;
+  language: string;
+  threat_intent_score: number;
+  source_credibility: number;
+  is_bot: boolean;
+  entities: { text: string; label: string; confidence: number }[];
+  hold_until_ms?: number;
+  collected_at: string;
+}
+
+export interface SocmintFeedResponse {
+  posts: SocmintPost[];
+  total: number;
+}
+
+export const socmintApi = {
+  feed: (minThreat = 0.4, limit = 50) =>
+    api.get<SocmintFeedResponse>(`/socmint/feed?min_threat=${minThreat}&limit=${limit}`),
+};
+
+// ── Risk Score History ────────────────────────────────────────
+
+export interface RiskScorePoint {
+  scored_at: string;
+  risk_score: number;
+}
+
+export interface RiskScoreHistory {
+  entity_id: string;
+  entity_name?: string;
+  history: RiskScorePoint[];
+}
+
+export const mlApi = {
+  riskHistory: (entityId: string, days = 30) =>
+    api.get<RiskScoreHistory>(`/ml/risk-history/${entityId}?days=${days}`),
+};
+
+// ── Audit Log ────────────────────────────────────────────────
+
+export interface AuditEntry {
+  entry_id: string;
+  actor_sub: string;
+  action: string;
+  resource_type: string;
+  resource_id: string;
+  payload_hash: string;
+  timestamp: string;
+}
+
+export interface AuditLogResponse {
+  entries: AuditEntry[];
+  total: number;
+}
+
+export const auditApi = {
+  list: (resourceType?: string, actorSub?: string, page = 1, pageSize = 100) =>
+    api.get<AuditLogResponse>(
+      `/audit?page=${page}&page_size=${pageSize}` +
+      (resourceType ? `&resource_type=${resourceType}` : "") +
+      (actorSub ? `&actor_sub=${encodeURIComponent(actorSub)}` : ""),
+    ),
+};

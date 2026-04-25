@@ -12,6 +12,7 @@ import { graphApi } from "../services/api";
 
 interface Props {
   entity: EntityResult | null;
+  defaultHops?: number;
 }
 
 const LABEL_COLORS: Record<string, string> = {
@@ -24,7 +25,7 @@ const LABEL_COLORS: Record<string, string> = {
   Indicator:       "#ca8a04",
 };
 
-export function GraphExplorer({ entity }: Props) {
+export function GraphExplorer({ entity, defaultHops = 2 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sigmaRef = useRef<Sigma | null>(null);
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,7 @@ export function GraphExplorer({ entity }: Props) {
     setLoading(true);
     setError(null);
 
-    graphApi.neighborhood(entity.entity_id, 2).then((data) => {
+    graphApi.neighborhood(entity.entity_id, defaultHops).then((data) => {
       if (cancelled || !containerRef.current) return;
 
       // Destroy old sigma instance

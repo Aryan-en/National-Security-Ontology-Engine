@@ -1,0 +1,40 @@
+{
+  "type": "record",
+  "name": "SocmintProcessedEvent",
+  "namespace": "in.gov.nsoe.schemas",
+  "doc": "NLP-processed SOCMINT event. Topic: socmint.processed.events",
+  "fields": [
+    {"name": "event_id",             "type": "string"},
+    {"name": "platform",             "type": "string", "doc": "TWITTER | TELEGRAM | RSS | NEWS"},
+    {"name": "post_id",              "type": "string"},
+    {"name": "author_id",            "type": ["null","string"], "default": null},
+    {"name": "author_handle",        "type": ["null","string"], "default": null},
+    {"name": "text_original",        "type": "string"},
+    {"name": "text_translated",      "type": ["null","string"], "default": null},
+    {"name": "detected_language",    "type": "string", "doc": "ISO 639-1 code"},
+    {"name": "posted_at_ms",         "type": "long"},
+    {"name": "received_at_ms",       "type": "long"},
+    {"name": "threat_intent_score",  "type": "float", "doc": "[0.0, 1.0] — IndicBERT classifier output"},
+    {"name": "source_credibility",   "type": "float", "doc": "[0.0, 1.0] — source credibility model output"},
+    {"name": "is_bot",               "type": "boolean", "default": false},
+    {"name": "entities", "type": {
+      "type": "array",
+      "items": {
+        "type": "record",
+        "name": "NEREntity",
+        "fields": [
+          {"name": "text",        "type": "string"},
+          {"name": "label",       "type": "string", "doc": "PER | LOC | ORG | WEAPON | EVENT"},
+          {"name": "start_char",  "type": "int"},
+          {"name": "end_char",    "type": "int"},
+          {"name": "confidence",  "type": "float"},
+          {"name": "normalized",  "type": ["null","string"], "default": null, "doc": "Cross-language normalized form"}
+        ]
+      }
+    }, "default": []},
+    {"name": "keywords",             "type": {"type": "array", "items": "string"}, "default": []},
+    {"name": "url",                  "type": ["null","string"], "default": null},
+    {"name": "hold_until_ms",        "type": ["null","long"],   "default": null, "doc": "48h hold expiry — null = no hold"},
+    {"name": "schema_version",       "type": "string", "default": "1.0.0"}
+  ]
+}

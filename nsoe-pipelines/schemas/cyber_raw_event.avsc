@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "CyberRawEvent",
+  "namespace": "in.gov.nsoe.schemas",
+  "doc": "Raw cyber telemetry event (syslog/CEF/LEEF/NetFlow). Topic: cyber.raw.events",
+  "fields": [
+    {"name": "event_id",        "type": "string"},
+    {"name": "source_format",   "type": "string", "doc": "SYSLOG | CEF | LEEF | NETFLOW | IPFIX | STIX"},
+    {"name": "raw_payload",     "type": "string", "doc": "Original log line or JSON payload"},
+    {"name": "source_system_id","type": "string", "doc": "SIEM / sensor that produced this event"},
+    {"name": "received_at_ms",  "type": "long"},
+    {"name": "device_vendor",   "type": ["null","string"], "default": null},
+    {"name": "device_product",  "type": ["null","string"], "default": null},
+    {"name": "src_ip",          "type": ["null","string"], "default": null},
+    {"name": "dst_ip",          "type": ["null","string"], "default": null},
+    {"name": "src_port",        "type": ["null","int"],    "default": null},
+    {"name": "dst_port",        "type": ["null","int"],    "default": null},
+    {"name": "protocol",        "type": ["null","string"], "default": null},
+    {"name": "bytes_in",        "type": ["null","long"],   "default": null},
+    {"name": "bytes_out",       "type": ["null","long"],   "default": null},
+    {"name": "packets",         "type": ["null","long"],   "default": null},
+    {"name": "action",          "type": ["null","string"], "default": null, "doc": "ALLOW | DENY | DROP | ALERT"},
+    {"name": "severity",        "type": ["null","int"],    "default": null, "doc": "0-10 CEF severity"},
+    {"name": "facility_id",     "type": ["null","string"], "default": null, "doc": "Physical facility this sensor protects"},
+    {"name": "schema_version",  "type": "string", "default": "1.0.0"}
+  ]
+}
